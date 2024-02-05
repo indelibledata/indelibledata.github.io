@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Indelible Data Cyber Essentials Test Files</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+
+    body {
+      font-family: Arial, sans-serif;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    ul ul {
+      margin-left: 20px;
+    }
+    a {
+      text-decoration: none;
+      color: #0366d6; /* GitHub link color */
+    }
+    #fileList .card a{
+      display: flex;
+      justify-content: space-between;
+
+    }
+    header,
+    footer{
+      background-color: #3d307a;
+      color: #fff;
+    }
+    header a,
+    footer a{
+      color: #fff;
+    }
+    header a:hover,
+    footer a:hover{
+      color: #fff;
+    }
+    footer p{
+      margin-bottom: 0;
+    }
+  </style>
+</head>
+<body class="d-flex flex-column h-100">
+  <header class="d-flex flex-wrap justify-content-center py-3 mb-4 border-bottom">
+    <a href="/" class="mb-3 mb-md-0  text-decoration-none text-center">
+      <span class="fs-4">Indelible Data Cyber Essentials Test Files</span>
+    </a>
+  </header>
+<div class="container flex-shrink-0">
+  <div class="row">
+
+    <div class="col-12">
+      <ul id="fileList"></div>
+
+      <script>
+        const username = 'indelibledata';
+        const repo = 'Indelible-Data-Test-Files';
+        let currentDirectory = '';
+
+        
+        async function getRepoFiles(directory = '') {
+          try {
+            const apiUrl = `https://api.github.com/repos/${username}/${repo}/contents/${directory}?ref=main`;
+            const response = await fetch(apiUrl);
+            const data = await response.json();
+
+            if (response.ok) {
+              currentDirectory = directory;
+              displayFileList(data);
+            } else {
+              alert(`Error: ${data.message}`);
+            }
+          } catch (error) {
+            alert(`Error: ${error.message}`);
+          }
+        }
+
+        
+        function displayFileList(items) {
+          const fileListElement = document.getElementById('fileList');
+          fileListElement.innerHTML = '';
+
+            
+            if (currentDirectory !== '') {
+              const liBack = document.createElement('li');
+              const linkBack = document.createElement('a');
+              linkBack.href = '#';
+              linkBack.innerHTML = `
+                <div class="card">
+                  <div class="card-body">
+                    <span><svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24"><path d="M440-280h80v-168l64 64 56-56-160-160-160 160 56 56 64-64v168ZM160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h240l80 80h320q33 0 56.5 23.5T880-640v400q0 33-23.5 56.5T800-160H160Zm0-80h640v-400H447l-80-80H160v480Zm0 0v-480 480Z"/></svg> ..</span>
+                  </div>
+                </div>
+              `;
+              linkBack.addEventListener('click', () => getRepoFiles(getParentDirectory(currentDirectory)));
+              liBack.appendChild(linkBack);
+              fileListElement.appendChild(liBack);
+            }
+
+          items.forEach(item => {
+            const card = document.createElement('div');
+            card.classList.add('card');
+
+            const cardBody = document.createElement('div');
+            cardBody.classList.add('card-body');
+
+            const li = document.createElement('li');
+
+            if (item.type === 'dir') {
+              const link = document.createElement('a');
+              link.href = '#';
+              link.innerHTML = `<span><svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24"><path d="M160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h240l80 80h320q33 0 56.5 23.5T880-640H447l-80-80H160v480l96-320h684L837-217q-8 26-29.5 41.5T760-160H160Z"></svg> ${item.name}</span>`;
+              link.addEventListener('click', () => getRepoFiles(item.path));
+              cardBody.appendChild(link);
+            } else if (item.type === 'file') {
+              const link = document.createElement('a');
+              link.href = item.download_url;
+              link.setAttribute('download', `${item.name}`);
+              link.setAttribute('target', '_blank');
+              link.innerHTML = `<span>${item.name}</span> <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24"><path d="M480-320 280-520l56-58 104 104v-326h80v326l104-104 56 58-200 200ZM240-160q-33 0-56.5-23.5T160-240v-120h80v120h480v-120h80v120q0 33-23.5 56.5T720-160H240Z"/></svg>`;
+              cardBody.appendChild(link);
+            }
+
+            card.appendChild(cardBody);
+            li.appendChild(card);
+            fileListElement.appendChild(li);
+          });
+        }
+
+
+        function getParentDirectory(directory) {
+          const parts = directory.split('/');
+          parts.pop(); 
+          return parts.join('/');
+        }
+
+        getRepoFiles();
+      </script>
+    </div>
+  </div>
+</div>
+<footer class="footer position-absolute bottom-0 w-100 py-3">
+  <div class="container">
+    <p>&copy; 2024 <a href="https://www.linkedin.com/company/indelible-data-limited/" rel="me" target="_blank"> Indelible Data</a> </p>
+  </div>
+</footer>
+</body>
+</html>
