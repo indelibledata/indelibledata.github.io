@@ -63,67 +63,70 @@
     const repo = 'Indelible-Data-Test-Files';
     let currentDirectory = '';
 
-    
     async function getRepoFiles(directory = '') {
       try {
-        const fileListUrl = `https://raw.githubusercontent.com/${username}/${repo}/main/fileList.json`;
-        const response = await fetch(fileListUrl);
-        const data = await response.json();
+        const cacheKey = `${username}_${repo}_${directory}`;
+        const cachedData = localStorage.getItem(cacheKey);
+
+        if (cachedData) {
+          const { data, timestamp } = JSON.parse(cachedData);
+          if (Date.now() - timestamp < 3600000) {
+            displayFileList(JSON.parse(data));
+            return;
+          }
+        }
+
+        // Updated apiUrl to read fileList.json
+        const apiUrl = `https://api.github.com/repos/${username}/${repo}/contents/fileList.json?ref=main`;
+        const response = await fetch(apiUrl);
+        const rawData = await response.json();
+        const data = rawData.filter(item => item.path.includes(directory));
 
         if (response.ok) {
           currentDirectory = directory;
-          displayFileList(data[directory]);
+          displayFileList(data);
+          localStorage.setItem(cacheKey, JSON.stringify({ data: JSON.stringify(data), timestamp: Date.now() }));
         } else {
-          alert(`Error: ${data.message}`);
+          alert(`Error: ${rawData.message}`);
         }
       } catch (error) {
         alert(`Error: ${error.message}`);
       }
     }
 
-    
     function displayFileList(items) {
       const fileListElement = document.getElementById('fileList');
       fileListElement.innerHTML = '';
 
-        
-        if (currentDirectory !== '') {
-          const liBack = document.createElement('li');
-          const linkBack = document.createElement('a');
-          linkBack.href = '#';
-          linkBack.innerHTML = `
-            <div class="card">
-              <div class="card-body">
-                <span><svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24"><path d="M440-280h80v-168l64 64 56-56-160-160-160 160 56 56 64-64v168ZM160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h240l80 80h320q33 0 56.5 23.5T880-640v400q0 33-23.5 56.5T800-160H160Zm0-80h640v-400H447l-80-80H160v480Zm0 0v-480 480Z"/></svg> ..</span>
-              </div>
-            </div>
-          `;
-          linkBack.addEventListener('click', () => getRepoFiles(getParentDirectory(currentDirectory)));
-          liBack.appendChild(linkBack);
-          fileListElement.appendChild(liBack);
-        }
+      if (currentDirectory !== '') {
+        const liBack = document.createElement('li');
+        const linkBack = document.createElement('a');
+        linkBack.href = '#';
+        linkBack.innerHTML = '<div class="card"><div class="card-body"><span>..</span></div></div>';
+        linkBack.addEventListener('click', () => getRepoFiles(getParentDirectory(currentDirectory)));
+        liBack.appendChild(linkBack);
+        fileListElement.appendChild(liBack);
+      }
 
       items.forEach(item => {
         const card = document.createElement('div');
         card.classList.add('card');
-
         const cardBody = document.createElement('div');
         cardBody.classList.add('card-body');
-
         const li = document.createElement('li');
 
         if (item.type === 'dir') {
           const link = document.createElement('a');
           link.href = '#';
-          link.innerHTML = `<span><svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24"><path d="M160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h240l80 80h320q33 0 56.5 23.5T880-640H447l-80-80H160v480l96-320h684L837-217q-8 26-29.5 41.5T760-160H160Z"></svg> ${item.name}</span>`;
+          link.innerHTML = `<span>${item.name}</span>`;
           link.addEventListener('click', () => getRepoFiles(item.path));
           cardBody.appendChild(link);
         } else if (item.type === 'file') {
           const link = document.createElement('a');
           link.href = item.download_url;
-          link.setAttribute('download', `${item.name}`);
+          link.setAttribute('download', item.name);
           link.setAttribute('target', '_blank');
-          link.innerHTML = `<span>${item.name}</span> <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24"><path d="M480-320 280-520l56-58 104 104v-326h80v326l104-104 56 58-200 200ZM240-160q-33 0-56.5-23.5T160-240v-120h80v120h480v-120h80v120q0 33-23.5 56.5T720-160H240Z"/></svg>`;
+          link.innerHTML = `<span>${item.name}</span>`;
           cardBody.appendChild(link);
         }
 
@@ -133,15 +136,14 @@
       });
     }
 
-
     function getParentDirectory(directory) {
       const parts = directory.split('/');
       parts.pop(); 
       return parts.join('/');
     }
 
-    getRepoFiles();
-  </script>
+    getRepoFiles();  // Initialize with root directory
+</script>
     </div>
   </div>
 </div>
