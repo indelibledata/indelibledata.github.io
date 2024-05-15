@@ -66,13 +66,13 @@
     
     async function getRepoFiles(directory = '') {
       try {
-        const apiUrl = `https://api.github.com/repos/${username}/${repo}/contents/${directory}?ref=main`;
-        const response = await fetch(apiUrl);
+        const fileListUrl = `https://raw.githubusercontent.com/${username}/${repo}/main/fileList.json`;
+        const response = await fetch(fileListUrl);
         const data = await response.json();
 
         if (response.ok) {
           currentDirectory = directory;
-          displayFileList(data);
+          displayFileList(data[directory]);
         } else {
           alert(`Error: ${data.message}`);
         }
