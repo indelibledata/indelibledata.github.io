@@ -58,100 +58,100 @@
     <div class="col-12">
       <ul id="fileList"></div>
 
-<script>
-const username = 'indelibledata';
-const repo = 'Indelible-Data-Test-Files';
-let currentDirectory = '';
+        <script>
+          const blacklist = ['.github'];
+          const username = 'indelibledata';
+          const repo = 'Indelible-Data-Test-Files';
+          let globalData;  // to hold the full directory structure
+          let currentPath = [];  // to keep track of the navigation path
+          
+          function isBlacklisted(name) {
+            return blacklist.includes(name);
+          }
 
-async function getRepoFiles(directory = '') {
-  try {
-    const cacheKey = `${username}_${repo}_${directory}`;
-    const cachedData = localStorage.getItem(cacheKey);
+          async function getRepoFiles() {
+            try {
+              const apiUrl = `https://api.github.com/repos/${username}/${repo}/contents/fileList.json?ref=main`;
+              const response = await fetch(apiUrl);
+              const jsonFile = await response.json();
+          
+              if (response.ok) {
+                const fileDataUrl = jsonFile.download_url;
+                const fileResponse = await fetch(fileDataUrl);
+                globalData = await fileResponse.json();
+                displayFileList(globalData, currentPath);
+              } else {
+                alert(`Error: ${jsonFile.message}`);
+              }
+            } catch (error) {
+              alert(`Error: ${error.message}`);
+            }
+          }
+          
+          function displayFileList(data, path) {
+            const fileListElement = document.getElementById('fileList');
+            fileListElement.innerHTML = '';
+          
+            // Display a 'Back' button if not at root
+            if (path.length > 0) {
+              const liBack = document.createElement('li');
+              liBack.innerHTML = `
+                <a href="#" onclick="event.preventDefault(); goUpOneLevel();">
+                  <div class="card">
+                    <div class="card-body">
+                      <span><svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24"><path d="M11 5h2v7h3l-4 5-4-5h3z"/><path d="M3 3h18v2H3z"/></svg> ..</span>
+                    </div>
+                  </div>
+                </a>
+              `;
+              fileListElement.appendChild(liBack);
+            }
+          
+            const currentData = path.reduce((acc, curr) => acc.files.find(x => x.name === curr), data);
+          
+            currentData.files.forEach(item => {
+              if (!isBlacklisted(item.name)) {
+              const li = document.createElement('li');
+              li.innerHTML = `
+                <a href="#" onclick="event.preventDefault(); ${item.type === 'dir' ? `navigateInto('${item.name}');` : `downloadFile('${item.download_url}', '${item.name}');`}">
+                  <div class="card">
+                    <div class="card-body">
+                      ${item.type === 'dir' ? `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="24" height="24" viewBox="0 0 256 256" xml:space="preserve"><g style="stroke: none; stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: none; fill-rule: nonzero; opacity: 1;" transform="translate(1.4065934065934016 1.4065934065934016) scale(2.81 2.81)"><path d="M 89.475 31.953 c -0.56 -0.816 -1.485 -1.304 -2.475 -1.304 H 73.97 v -9.181 c 0 -1.657 -1.343 -3 -3 -3 H 30.857 l -2.408 -4.916 c -0.504 -1.028 -1.549 -1.68 -2.694 -1.68 H 3 c -1.657 0 -3 1.343 -3 3 v 60.254 c 0 0.071 0.016 0.137 0.021 0.207 c 0.006 0.083 0.012 0.164 0.025 0.246 c 0.024 0.158 0.063 0.309 0.11 0.458 c 0.02 0.061 0.033 0.123 0.057 0.183 c 0.083 0.211 0.184 0.412 0.31 0.596 c 0.001 0.002 0.002 0.005 0.003 0.007 c 0.009 0.013 0.022 0.023 0.031 0.036 c 0.118 0.166 0.254 0.318 0.402 0.456 c 0.052 0.049 0.109 0.091 0.164 0.135 c 0.119 0.096 0.243 0.183 0.376 0.26 c 0.065 0.038 0.129 0.074 0.196 0.107 c 0.143 0.069 0.292 0.124 0.446 0.17 c 0.062 0.019 0.12 0.042 0.184 0.057 c 0.218 0.05 0.442 0.083 0.675 0.083 h 67.97 c 1.239 0 2.352 -0.763 2.798 -1.919 l 16.03 -41.477 C 90.155 33.808 90.034 32.769 89.475 31.953 z M 23.884 17.873 l 2.408 4.916 c 0.504 1.028 1.549 1.68 2.694 1.68 H 67.97 v 6.181 H 19.03 c -1.24 0 -2.352 0.762 -2.798 1.918 L 6 59.042 v -41.17 H 23.884 z" style="fill: rgb(0,0,0);"/></g></svg>` : `<svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24"><path d="M12 16l4-4h-3V4h-2v8H8z"/><path d="M20 18H4v2h16z"/></svg>`} <span>${item.name}</span>
+                    </div>
+                  </div>
+                </a>
+              `;
 
-    if (cachedData) {
-      const { data, timestamp } = JSON.parse(cachedData);
-      // Check if cached data is within 1 hour
-      if (Date.now() - timestamp < 3600000) {
-        displayFileList(JSON.parse(data));
-        return;
-      }
-    }
-
-    const apiUrl = `https://api.github.com/repos/${username}/${repo}/contents/${directory}?ref=main`;
-    const response = await fetch(apiUrl);
-    const data = await response.json();
-
-    if (response.ok) {
-      currentDirectory = directory;
-      displayFileList(data);
-      // Cache the response
-      localStorage.setItem(cacheKey, JSON.stringify({ data: JSON.stringify(data), timestamp: Date.now() }));
-    } else {
-      alert(`Error: ${data.message}`);
-    }
-  } catch (error) {
-    alert(`Error: ${error.message}`);
-  }
-}
-
-function displayFileList(data) {
-  const fileListElement = document.getElementById('fileList');
-  fileListElement.innerHTML = '';
-
-  if (currentDirectory !== '') {
-    const liBack = document.createElement('li');
-    const linkBack = document.createElement('a');
-    linkBack.href = '#';
-    linkBack.innerHTML = `
-      <div class="card">
-        <div class="card-body">
-          <span><svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24"><path d="M440-280h80v-168l64 64 56-56-160-160-160 160 56 56 64-64v168ZM160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h240l80 80h320q33 0 56.5 23.5T880-640v400q0 33-23.5 56.5T800-160H160Zm0-80h640v-400H447l-80-80H160v480Zm0 0v-480 480Z"/></svg> ..</span>
-        </div>
-      </div>
-    `;
-    linkBack.addEventListener('click', () => getRepoFiles(getParentDirectory(currentDirectory)));
-    liBack.appendChild(linkBack);
-    fileListElement.appendChild(liBack);
-  }
-
-  data.files.forEach(item => {
-    const card = document.createElement('div');
-    card.classList.add('card');
-
-    const cardBody = document.createElement('div');
-    cardBody.classList.add('card-body');
-
-    const li = document.createElement('li');
-
-    if (item.type === 'dir') {
-      const link = document.createElement('a');
-      link.href = '#';
-      link.innerHTML = `<span><svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24"><path d="M160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h240l80 80h320q33 0 56.5 23.5T880-640H447l-80-80H160v480l96-320h684L837-217q-8 26-29.5 41.5T760-160H160Z"></svg> ${item.name}</span>`;
-      link.addEventListener('click', () => getRepoFiles(item.path));
-      cardBody.appendChild(link);
-    } else if (item.type === 'file') {
-      const link = document.createElement('a');
-      link.href = item.download_url;
-      link.setAttribute('download', `${item.name}`);
-      link.setAttribute('target', '_blank');
-      link.innerHTML = `<span>${item.name}</span> <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24"><path d="M480-320 280-520l56-58 104 104v-326h80v326l104-104 56 58-200 200ZM240-160q-33 0-56.5-23.5T160-240v-120h80v120h480v-120h80v120q0 33-23.5 56.5T720-160H240Z"/></svg>`;
-      cardBody.appendChild(link);
-    }
-
-    card.appendChild(cardBody);
-    li.appendChild(card);
-    fileListElement.appendChild(li);
-  });
-}
-
-function getParentDirectory(directory) {
-  const parts = directory.split('/');
-  parts.pop(); 
-  return parts.join('/');
-}
-
-getRepoFiles();
-</script>
+              fileListElement.appendChild(li);
+              }
+            });
+          }
+          
+          function navigateInto(dirName) {
+            currentPath.push(dirName);
+            const newData = currentPath.reduce((acc, curr) => acc.files.find(x => x.name === curr), globalData);
+            displayFileList(globalData, currentPath);
+          }
+          
+          function goUpOneLevel() {
+            currentPath.pop();
+            const newData = currentPath.length > 0 ? currentPath.reduce((acc, curr) => acc.files.find(x => x.name === curr), globalData) : globalData;
+            displayFileList(globalData, currentPath);
+          }
+          
+          function downloadFile(url, name) {
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = name;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+          }
+          
+          getRepoFiles();
+          </script>
+          
+          
     </div>
   </div>
 </div>
