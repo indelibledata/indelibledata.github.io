@@ -56,16 +56,14 @@
       <script>
         const username = 'indelibledata';
         const repo = 'Indelible-Data-Test-Files';
-        let currentDirectory = '';
+        const fileListUrl = `https://api.github.com/repos/${username}/${repo}/contents/fileList.json?ref=main`;
 
-        async function getRepoFiles(directory = '') {
+        async function getRepoFiles() {
           try {
-            const apiUrl = `https://api.github.com/repos/${username}/${repo}/contents/${directory}?ref=main`;
-            const response = await fetch(apiUrl);
+            const response = await fetch(fileListUrl);
             const data = await response.json();
 
             if (response.ok) {
-              currentDirectory = directory;
               displayFileList(data);
             } else {
               alert(`Error: ${data.message}`);
@@ -78,22 +76,6 @@
         function displayFileList(items) {
           const fileListElement = document.getElementById('fileList');
           fileListElement.innerHTML = '';
-
-          if (currentDirectory !== '') {
-            const liBack = document.createElement('li');
-            const linkBack = document.createElement('a');
-            linkBack.href = '#';
-            linkBack.innerHTML = `
-              <div class="card">
-                <div class="card-body">
-                  <span><svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24"><path d="M440-280h80v-168l64 64 56-56-160-160-160 160 56 56 64-64v168ZM160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h240l80 80h320q33 0 56.5 23.5T880-640v400q0 33-23.5 56.5T800-160H160Zm0-80h640v-400H447l-80-80H160v480Zm0 0v-480 480Z"/></svg> ..</span>
-                </div>
-              </div>
-            `;
-            linkBack.addEventListener('click', () => getRepoFiles(getParentDirectory(currentDirectory)));
-            liBack.appendChild(linkBack);
-            fileListElement.appendChild(liBack);
-          }
 
           items.forEach(item => {
             const card = document.createElement('div');
@@ -108,7 +90,6 @@
               const link = document.createElement('a');
               link.href = '#';
               link.innerHTML = `<span><svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24"><path d="M160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h240l80 80h320q33 0 56.5 23.5T880-640H447l-80-80H160v480l96-320h684L837-217q-8 26-29.5 41.5T760-160H160Z"></svg> ${item.name}</span>`;
-              link.addEventListener('click', () => getRepoFiles(item.path));
               cardBody.appendChild(link);
             } else if (item.type === 'file') {
               const link = document.createElement('a');
@@ -122,12 +103,6 @@
             li.appendChild(card);
             fileListElement.appendChild(li);
           });
-        }
-
-        function getParentDirectory(directory) {
-          const parts = directory.split('/');
-          parts.pop();
-          return parts.join('/');
         }
 
         getRepoFiles();
