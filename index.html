@@ -43,6 +43,11 @@
       justify-content: space-between;
       flex-direction: row-reverse;
     }
+    .icon {
+      display: inline-block;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
   </style>
 </head>
 <body class="d-flex flex-column h-100">
@@ -96,6 +101,9 @@
                 <a href="#" onclick="event.preventDefault(); goUpOneLevel();">
                   <div class="card">
                     <div class="card-body directory">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24">
+                        <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"></path>
+                      </svg>
                       <span>..</span>
                     </div>
                   </div>
@@ -114,6 +122,9 @@
                     <a href="${item.download_url}" download="${item.name}">
                       <div class="card">
                         <div class="card-body download">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24">
+                            <path d="M12 16l4-4h-3V4h-2v8H8z"/><path d="M20 18H4v2h16z"/>
+                          </svg>
                           <span>${item.name}</span>
                         </div>
                       </div>
@@ -124,6 +135,9 @@
                     <a href="#" onclick="event.preventDefault(); navigateInto('${item.name}');">
                       <div class="card">
                         <div class="card-body directory">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 256 256">
+                            <path d="M213.1 82.7l-26.6-40A12.1 12.1 0 0 0 176 36H80a20.1 20.1 0 0 0-20 20v144a20.1 20.1 0 0 0 20 20h144a20.1 20.1 0 0 0 20-20V96a12.1 12.1 0 0 0-4.9-9.3zM80 52h92l18 27H80Z"></path>
+                          </svg>
                           <span>${item.name}</span>
                         </div>
                       </div>
