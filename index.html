@@ -64,9 +64,9 @@
             const data = await response.json();
 
             if (response.ok) {
-              displayFileList(data);
+              displayFileList(data.files);
             } else {
-              alert(`Error: ${data.message}`);
+              alert(`Error: Unable to fetch the file list.`);
             }
           } catch (error) {
             alert(`Error: ${error.message}`);
