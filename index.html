@@ -59,8 +59,8 @@
           const blacklist = ['.github'];
           const username = 'indelibledata';
           const repo = 'Indelible-Data-Test-Files';
-          let globalData;  // to hold the full directory structure
-          let currentPath = [];  // to keep track of the navigation path
+          let globalData;  // To hold the full directory structure
+          let currentPath = [];  // To keep track of the navigation path
 
           function isBlacklisted(name) {
             return blacklist.includes(name);
@@ -89,6 +89,7 @@
             const fileListElement = document.getElementById('fileList');
             fileListElement.innerHTML = '';
 
+            // Display a 'Back' button if not at root
             if (path.length > 0) {
               const liBack = document.createElement('li');
               liBack.innerHTML = `
@@ -106,8 +107,8 @@
             const currentData = path.reduce((acc, curr) => acc.files.find(x => x.name === curr), data);
 
             currentData.files.forEach(item => {
+              const li = document.createElement('li');
               if (!isBlacklisted(item.name)) {
-                const li = document.createElement('li');
                 if (item.type === 'file') {
                   li.innerHTML = `
                     <a href="${item.download_url}" download="${item.name}">
@@ -118,7 +119,7 @@
                       </div>
                     </a>
                   `;
-                } else {
+                } else if (item.type === 'dir') {
                   li.innerHTML = `
                     <a href="#" onclick="event.preventDefault(); navigateInto('${item.name}');">
                       <div class="card">
