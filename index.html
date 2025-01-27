@@ -25,21 +25,23 @@
       display: flex;
       justify-content: space-between;
     }
-    header,
-    footer {
+    header, footer {
       background-color: #3d307a;
       color: #fff;
     }
-    header a,
-    footer a {
+    header a, footer a {
       color: #fff;
     }
-    header a:hover,
-    footer a:hover {
+    header a:hover, footer a:hover {
       color: #fff;
     }
     footer p {
       margin-bottom: 0;
+    }
+    .card-body.download {
+      display: flex;
+      justify-content: space-between;
+      flex-direction: row-reverse;
     }
   </style>
 </head>
@@ -49,71 +51,108 @@
       <span class="fs-4">Indelible Data Cyber Essentials Test Files</span>
     </a>
   </header>
-<div class="container flex-shrink-0">
-  <div class="row">
-    <div class="col-12">
-      <ul id="fileList"></ul>
-      <script>
-        const username = 'indelibledata';
-        const repo = 'Indelible-Data-Test-Files';
-        const fileListUrl = `https://raw.githubusercontent.com/${username}/${repo}/main/fileList.json`;
+  <div class="container flex-shrink-0">
+    <div class="row">
+      <div class="col-12">
+        <ul id="fileList"></ul>
+        <script>
+          const blacklist = ['.github'];
+          const username = 'indelibledata';
+          const repo = 'Indelible-Data-Test-Files';
+          let globalData;  // to hold the full directory structure
+          let currentPath = [];  // to keep track of the navigation path
 
-        async function getRepoFiles() {
-          try {
-            const response = await fetch(fileListUrl);
-            const data = await response.json();
-
-            if (response.ok) {
-              displayFileList(data.files);
-            } else {
-              alert(`Error: Unable to fetch the file list.`);
-            }
-          } catch (error) {
-            alert(`Error: ${error.message}`);
+          function isBlacklisted(name) {
+            return blacklist.includes(name);
           }
-        }
 
-        function displayFileList(items) {
-          const fileListElement = document.getElementById('fileList');
-          fileListElement.innerHTML = '';
+          async function getRepoFiles() {
+            try {
+              const apiUrl = `https://api.github.com/repos/${username}/${repo}/contents/fileList.json?ref=main`;
+              const response = await fetch(apiUrl);
+              const jsonFile = await response.json();
 
-          items.forEach(item => {
-            const card = document.createElement('div');
-            card.classList.add('card');
+              if (response.ok) {
+                const fileDataUrl = jsonFile.download_url;
+                const fileResponse = await fetch(fileDataUrl);
+                globalData = await fileResponse.json();
+                displayFileList(globalData, currentPath);
+              } else {
+                alert(`Error: ${jsonFile.message}`);
+              }
+            } catch (error) {
+              alert(`Error: ${error.message}`);
+            }
+          }
 
-            const cardBody = document.createElement('div');
-            cardBody.classList.add('card-body');
+          function displayFileList(data, path) {
+            const fileListElement = document.getElementById('fileList');
+            fileListElement.innerHTML = '';
 
-            const li = document.createElement('li');
-
-            if (item.type === 'dir') {
-              const link = document.createElement('a');
-              link.href = '#';
-              link.innerHTML = `<span><svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24"><path d="M160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h240l80 80h320q33 0 56.5 23.5T880-640H447l-80-80H160v480l96-320h684L837-217q-8 26-29.5 41.5T760-160H160Z"></svg> ${item.name}</span>`;
-              cardBody.appendChild(link);
-            } else if (item.type === 'file') {
-              const link = document.createElement('a');
-              link.href = item.download_url;
-              link.setAttribute('download', item.name);
-              link.innerHTML = `<span>${item.name}</span> <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24"><path d="M480-320 280-520l56-58 104 104v-326h80v326l104-104 56 58-200 200ZM240-160q-33 0-56.5-23.5T160-240v-120h80v120h480v-120h80v120q0 33-23.5 56.5T720-160H240Z"/></svg>`;
-              cardBody.appendChild(link);
+            if (path.length > 0) {
+              const liBack = document.createElement('li');
+              liBack.innerHTML = `
+                <a href="#" onclick="event.preventDefault(); goUpOneLevel();">
+                  <div class="card">
+                    <div class="card-body directory">
+                      <span>..</span>
+                    </div>
+                  </div>
+                </a>
+              `;
+              fileListElement.appendChild(liBack);
             }
 
-            card.appendChild(cardBody);
-            li.appendChild(card);
-            fileListElement.appendChild(li);
-          });
-        }
+            const currentData = path.reduce((acc, curr) => acc.files.find(x => x.name === curr), data);
 
-        getRepoFiles();
-      </script>
+            currentData.files.forEach(item => {
+              if (!isBlacklisted(item.name)) {
+                const li = document.createElement('li');
+                if (item.type === 'file') {
+                  li.innerHTML = `
+                    <a href="${item.download_url}" download="${item.name}">
+                      <div class="card">
+                        <div class="card-body download">
+                          <span>${item.name}</span>
+                        </div>
+                      </div>
+                    </a>
+                  `;
+                } else {
+                  li.innerHTML = `
+                    <a href="#" onclick="event.preventDefault(); navigateInto('${item.name}');">
+                      <div class="card">
+                        <div class="card-body directory">
+                          <span>${item.name}</span>
+                        </div>
+                      </div>
+                    </a>
+                  `;
+                }
+                fileListElement.appendChild(li);
+              }
+            });
+          }
+
+          function navigateInto(dirName) {
+            currentPath.push(dirName);
+            displayFileList(globalData, currentPath);
+          }
+
+          function goUpOneLevel() {
+            currentPath.pop();
+            displayFileList(globalData, currentPath);
+          }
+
+          getRepoFiles();
+        </script>
+      </div>
     </div>
   </div>
-</div>
-<footer class="footer position-absolute bottom-0 w-100 py-3">
-  <div class="container">
-    <p>&copy; 2024 <a href="https://www.linkedin.com/company/indelible-data-limited/" rel="me" target="_blank">Indelible Data</a></p>
-  </div>
-</footer>
+  <footer class="footer position-absolute bottom-0 w-100 py-3">
+    <div class="container">
+      <p>&copy; 2024 <a href="https://www.linkedin.com/company/indelible-data-limited/" rel="me" target="_blank">Indelible Data</a></p>
+    </div>
+  </footer>
 </body>
 </html>
