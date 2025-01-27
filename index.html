@@ -56,7 +56,7 @@
       <script>
         const username = 'indelibledata';
         const repo = 'Indelible-Data-Test-Files';
-        const fileListUrl = `https://api.github.com/repos/${username}/${repo}/contents/fileList.json?ref=main`;
+        const fileListUrl = `https://raw.githubusercontent.com/${username}/${repo}/main/fileList.json`;
 
         async function getRepoFiles() {
           try {
