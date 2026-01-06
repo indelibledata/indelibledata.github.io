@@ -46,15 +46,35 @@
       margin-right: 8px;
       vertical-align: middle;
     }
+    .nav-link {
+      color: #ffffff;
+    }
+    .nav-link:hover {
+      color: #ffffff;
+      text-decoration: underline;
+    }
   </style>
 </head>
 
 <body class="d-flex flex-column h-100">
 
-  <header class="d-flex flex-wrap justify-content-center py-3 mb-4 border-bottom">
-    <a href="/" class="mb-3 mb-md-0 text-decoration-none text-center">
-      <span class="fs-4">Indelible Data Cyber Essentials Test Files</span>
-    </a>
+  <header class="py-3 mb-4 border-bottom">
+    <div class="container d-flex align-items-center justify-content-between">
+      <a href="/" class="text-decoration-none">
+        <span class="fs-4">Indelible Data Cyber Essentials Test Files</span>
+      </a>
+
+      <nav>
+        <ul class="nav">
+          <li class="nav-item">
+            <a href="/" class="nav-link px-2">Home</a>
+          </li>
+          <li class="nav-item">
+            <a href="/ios.html" class="nav-link px-2">iOS</a>
+          </li>
+        </ul>
+      </nav>
+    </div>
   </header>
 
   <main class="container flex-shrink-0" style="min-height:100vh;">
