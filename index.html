@@ -34,13 +34,13 @@
     }
     header, footer {
       background-color: #3d307a;
-      color: #ffffff;
+      color: #fff;
     }
     header a, footer a {
-      color: #ffffff;
+      color: #fff;
     }
     header a:hover, footer a:hover {
-      color: #ffffff;
+      color: #fff;
     }
     footer p {
       margin-bottom: 0;
@@ -49,6 +49,7 @@
       display: flex;
       justify-content: space-between;
       flex-direction: row-reverse;
+      align-items: center;
     }
     .icon {
       display: inline-block;
@@ -90,11 +91,11 @@
   <div class="container flex-shrink-0" style="min-height:100vh;">
     <div class="row">
 
-      <!-- WARNING CARD -->
+      <!-- WARNING CARD SECTION -->
       <div class="col-12">
         <div class="card alert alert-warning">
           <div class="card-body">
-            <svg fill="#000000" version="1.1"
+            <svg fill="#000000" version="1.1" id="Capa_1"
                  xmlns="http://www.w3.org/2000/svg"
                  xmlns:xlink="http://www.w3.org/1999/xlink"
                  class="icon"
@@ -103,7 +104,13 @@
                  xml:space="preserve">
               <g>
                 <path d="M181.563,0C120.762,0,59.215,30.525,59.215,88.873V237.5c0,65.658,53.412,119.071,119.071,119.071
-                  c65.658,0,119.07-53.413,119.07-119.071V88.873C297.356,27.809,237.336,0,181.563,0z"/>
+                  c65.658,0,119.07-53.413,119.07-119.071V88.873C297.356,27.809,237.336,0,181.563,0z M274.945,237.5
+                  c0,53.303-43.362,96.657-96.659,96.657c-53.299,0-96.657-43.354-96.657-96.657v-69.513c20.014,6.055,57.685,15.215,102.221,15.215
+                  c28.515,0,59.831-3.809,91.095-14.567V237.5z M274.945,144.794c-81.683,31.233-168.353,7.716-193.316-0.364V88.873
+                  c0-43.168,51.489-66.46,99.934-66.46c46.481,0,93.382,20.547,93.382,66.46V144.794z M190.893,48.389v81.248
+                  c0,6.187-5.023,11.208-11.206,11.208c-6.185,0-11.207-5.021-11.207-11.208V48.389c0-6.186,5.021-11.207,11.207-11.207
+                  C185.869,37.182,190.893,42.203,190.893,48.389z M264.272,130.378c0,0-46.687,13.072-62.566,10.271V36.988
+                  C201.706,36.988,276.412,37.923,264.272,130.378z"/>
               </g>
             </svg>
             Please note any items with this icon cannot be downloaded directly.
@@ -111,10 +118,143 @@
           </div>
         </div>
       </div>
+      <!-- END OF WARNING CARD SECTION -->
 
       <div class="col-12">
         <ul id="fileList"></ul>
-        <!-- Existing repo file JavaScript unchanged -->
+
+        <script>
+          const blacklist = ['.github'];
+          const username = 'indelibledata';
+          const repo = 'Indelible-Data-Test-Files';
+          let globalData;  // To hold the full directory structure
+          let currentPath = [];  // To keep track of the navigation path
+
+          function isBlacklisted(name) {
+            return blacklist.includes(name);
+          }
+
+          async function getRepoFiles() {
+            try {
+              const apiUrl = `https://api.github.com/repos/${username}/${repo}/contents/fileList.json?ref=main`;
+              const response = await fetch(apiUrl);
+              const jsonFile = await response.json();
+
+              if (response.ok) {
+                const fileDataUrl = jsonFile.download_url;
+                const fileResponse = await fetch(fileDataUrl);
+                globalData = await fileResponse.json();
+                displayFileList(globalData, currentPath);
+              } else {
+                alert(`Error: ${jsonFile.message}`);
+              }
+            } catch (error) {
+              alert(`Error: ${error.message}`);
+            }
+          }
+
+          function displayFileList(data, path) {
+            const fileListElement = document.getElementById('fileList');
+            fileListElement.innerHTML = '';
+
+            // Display a 'Back' button if not at root
+            if (path.length > 0) {
+              const liBack = document.createElement('li');
+              liBack.innerHTML = `
+                <a href="#" onclick="event.preventDefault(); goUpOneLevel();">
+                  <div class="card">
+                    <div class="card-body directory">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24">
+                        <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"></path>
+                      </svg>
+                      <span>..</span>
+                    </div>
+                  </div>
+                </a>
+              `;
+              fileListElement.appendChild(liBack);
+            }
+
+            const currentData = path.reduce((acc, curr) => {
+              return acc.files.find(x => x.name === curr);
+            }, data);
+
+            currentData.files.forEach(item => {
+              const li = document.createElement('li');
+              if (!isBlacklisted(item.name)) {
+                if (item.type === 'file') {
+                  const fileExtension = item.name.split('.').pop().toLowerCase();
+                  let iconSVG;
+
+                  if (['txt', 'py', 'sh', 'bat', 'com'].includes(fileExtension)) {
+                    iconSVG = `
+                      <svg fill="#000000" version="1.1" id="Capa_1"
+                           xmlns="http://www.w3.org/2000/svg"
+                           xmlns:xlink="http://www.w3.org/1999/xlink"
+                           width="24px" height="24px"
+                           viewBox="0 0 356.572 356.572"
+                           class="icon"
+                           xml:space="preserve">
+                        <g>
+                          <path d="M181.563,0C120.762,0,59.215,30.525,59.215,88.873V237.5c0,65.658,53.412,119.071,119.071,119.071
+                            c65.658,0,119.07-53.413,119.07-119.071V88.873C297.356,27.809,237.336,0,181.563,0z M274.945,237.5
+                            c0,53.303-43.362,96.657-96.659,96.657c-53.299,0-96.657-43.354-96.657-96.657v-69.513c20.014,6.055,57.685,15.215,102.221,15.215
+                            c28.515,0,59.831-3.809,91.095-14.567V237.5z M274.945,144.794c-81.683,31.233-168.353,7.716-193.316-0.364V88.873
+                            c0-43.168,51.489-66.46,99.934-66.46c46.481,0,93.382,20.547,93.382,66.46V144.794z M190.893,48.389v81.248
+                            c0,6.187-5.023,11.208-11.206,11.208c-6.185,0-11.207-5.021-11.207-11.208V48.389c0-6.186,5.021-11.207,11.207-11.207
+                            C185.869,37.182,190.893,42.203,190.893,48.389z M264.272,130.378c0,0-46.687,13.072-62.566,10.271V36.988
+                            C201.706,36.988,276.412,37.923,264.272,130.378z"/>
+                        </g>
+                      </svg>`;
+                  } else {
+                    iconSVG = `
+                      <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24">
+                        <path d="M12 16l4-4h-3V4h-2v8H8z"/>
+                        <path d="M20 18H4v2h16z"/>
+                      </svg>`;
+                  }
+
+                  li.innerHTML = `
+                    <a href="${item.download_url}" download="${item.name}">
+                      <div class="card">
+                        <div class="card-body download">
+                          ${iconSVG}
+                          <span>${item.name}</span>
+                        </div>
+                      </div>
+                    </a>
+                  `;
+                } else if (item.type === 'dir') {
+                  li.innerHTML = `
+                    <a href="#" onclick="event.preventDefault(); navigateInto('${item.name}');">
+                      <div class="card">
+                        <div class="card-body directory">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 256 256">
+                            <path d="M213.1 82.7l-26.6-40A12.1 12.1 0 0 0 176 36H80a20.1 20.1 0 0 0-20 20v144a20.1 20.1 0 0 0 20 20h144a20.1 20.1 0 0 0 20-20V96a12.1 12.1 0 0 0-4.9-9.3zM80 52h92l18 27H80Z"></path>
+                          </svg>
+                          <span>${item.name}</span>
+                        </div>
+                      </div>
+                    </a>
+                  `;
+                }
+                fileListElement.appendChild(li);
+              }
+            });
+          }
+
+          function navigateInto(dirName) {
+            currentPath.push(dirName);
+            displayFileList(globalData, currentPath);
+          }
+
+          function goUpOneLevel() {
+            currentPath.pop();
+            displayFileList(globalData, currentPath);
+          }
+
+          getRepoFiles();
+        </script>
       </div>
 
     </div>
@@ -123,15 +263,10 @@
   <footer class="footer position-sticky bottom-0 w-100 py-3">
     <div class="container">
       <p>
-        © 2024 -
-        <script>document.write(new Date().getFullYear());</script>
-        <a href="https://www.linkedin.com/company/indelible-data-limited/" rel="me noopener noreferrer" target="_blank">
-          Indelible Data Linkedin
-        </a>
+        © 2024 - <script>document.write(new Date().getFullYear());</script>
+        <a href="https://www.linkedin.com/company/indelible-data-limited/" rel="me noopener noreferrer" target="_blank">Indelible Data Linkedin</a>
         /
-        <a href="https://indelibledata.co.uk/" rel="me noopener noreferrer" target="_blank">
-          Indelible Data Website
-        </a>
+        <a href="https://indelibledata.co.uk/" rel="me noopener noreferrer" target="_blank">Indelible Data Website</a>
       </p>
     </div>
   </footer>
